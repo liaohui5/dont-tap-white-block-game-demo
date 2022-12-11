@@ -1,0 +1,51 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  padding: 20px;
+}
+
+/*
+  不能将高度和宽度在css中写死,
+  因为要通过程序来灵活的控制,
+  当然,前期可以先写死来看效果
+*/
+
+.map-container {
+  /* width: 300px;
+  height: 480px; */
+  background: gray;
+  overflow: hidden;
+  position: relative;
+  top: 0;
+  left: 0;
+  border: 1px solid #eee;
+}
+
+.map-container .scroll-container {
+  /* width: 300px; */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+.scroll-container .row-item {
+  /* width: 100%;
+  height: 120px; */
+  display: flex;
+}
+
+.scroll-container .row-item .block-item {
+  /* width: 100px;
+  height: 100%; */
+  border: 1px solid #eee;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.block-item.black {
+  background: #000 !important;
+}
