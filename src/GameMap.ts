@@ -1,6 +1,4 @@
-"use strict";
-
-import GameMgr from "./GameMgr";
+import GameMgr from './GameMgr';
 
 /*
 [
@@ -18,6 +16,7 @@ import GameMgr from "./GameMgr";
     doms: [Div, Div, Div],
     rowDOM: Div
   }
+  // ...
 ]
 */
 
@@ -37,8 +36,9 @@ interface RowItem {
  */
 export default class GameMap {
   // 单例
-  private constructor() {}
-  public static instance: undefined | GameMap;
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  private constructor() { }
+  public static instance: GameMap;
   public static getInstance(): GameMap {
     if (!GameMap.instance) {
       GameMap.instance = new GameMap();
@@ -47,19 +47,25 @@ export default class GameMap {
   }
 
   // 游戏管理中心
-  public static gameMgr: GameMgr | undefined;
+  public static gameMgr?: GameMgr;
+  public get gameMgr() {
+    if (!GameMap.gameMgr) {
+      GameMap.gameMgr = GameMgr.getInstance();
+    }
+    return GameMap.gameMgr;
+  }
 
   // 开始按钮
-  public startBtnDOM: HTMLButtonElement | undefined;
+  public startBtnDOM: HTMLButtonElement;
 
   // 分数显示元素
-  public scoreDOM: HTMLParagraphElement | undefined;
+  public scoreDOM: HTMLParagraphElement;
 
   // 地图容器元素
-  public mapDOM: HTMLDivElement | undefined;
+  public mapDOM: HTMLDivElement;
 
   // 滚动的元素
-  public scrollerDOM: HTMLDivElement | undefined;
+  public scrollerDOM: HTMLDivElement;
 
   // 行数据
   public blockRows: RowItem[] = [];
@@ -90,13 +96,13 @@ export default class GameMap {
 
   // 元素类名
   public classNames = {
-    blackBlock: "black",
-    rowItem: "row-item",
-    blockItem: "block-item",
-    scrollerDOM: "scroll-container",
-    mapDOM: "map-container",
-    scoreDOM: "game-score",
-    startBtnDOM: "start-button",
+    blackBlock: 'black',
+    rowItem: 'row-item',
+    blockItem: 'block-item',
+    scrollerDOM: 'scroll-container',
+    mapDOM: 'map-container',
+    scoreDOM: 'game-score',
+    startBtnDOM: 'start-button',
   };
 
   /**
@@ -114,10 +120,7 @@ export default class GameMap {
   /**
    * 创建HTML元素并且设置类名和样式
    */
-  public createStyledElement<T extends HTMLElement>(
-    tagName: string,
-    className: string
-  ): T {
+  public createStyledElement<T extends HTMLElement>(tagName: string, className: string): T {
     const element = document.createElement(tagName) as T;
     element.classList.add(className);
     return element;
@@ -127,10 +130,7 @@ export default class GameMap {
    * 绘制分数显示
    */
   public createScore(): HTMLParagraphElement {
-    const scoreContainer = this.createStyledElement<HTMLParagraphElement>(
-      "p",
-      this.classNames.scoreDOM
-    );
+    const scoreContainer = this.createStyledElement<HTMLParagraphElement>('p', this.classNames.scoreDOM);
     this.scoreDOM = scoreContainer;
     return scoreContainer;
   }
@@ -146,11 +146,8 @@ export default class GameMap {
    * 绘制按钮
    */
   public createButtons(): HTMLButtonElement {
-    const startButton = this.createStyledElement<HTMLButtonElement>(
-      "button",
-      this.classNames.startBtnDOM
-    );
-    startButton.textContent = "开始游戏";
+    const startButton = this.createStyledElement<HTMLButtonElement>('button', this.classNames.startBtnDOM);
+    startButton.textContent = '开始游戏';
     this.startBtnDOM = startButton;
     return startButton;
   }
@@ -160,16 +157,10 @@ export default class GameMap {
    */
   public createBlocks(): HTMLDivElement {
     // 创建地图容器
-    const mapDOM = this.createStyledElement<HTMLDivElement>(
-      "div",
-      this.classNames.mapDOM
-    );
+    const mapDOM = this.createStyledElement<HTMLDivElement>('div', this.classNames.mapDOM);
 
     // 创建可以滚动的容器(主要让这个容器滚动来检测碰撞)
-    const scrollerDOM = this.createStyledElement<HTMLDivElement>(
-      "div",
-      this.classNames.scrollerDOM
-    );
+    const scrollerDOM = this.createStyledElement<HTMLDivElement>('div', this.classNames.scrollerDOM);
 
     // 创建对应数据和dom
     for (let i = 0, rs = this.rows; i < rs; i++) {
@@ -188,28 +179,22 @@ export default class GameMap {
    * 创建一行的具体数据和dom
    */
   public createRow(index: number): RowItem {
-    const data = [];
-    const doms = [];
+    const data: boolean[] = [];
+    const doms: HTMLDivElement[] = [];
     const rowIndex = String(index);
 
-    const rowDOM = this.createStyledElement<HTMLDivElement>(
-      "div",
-      this.classNames.rowItem
-    );
-    rowDOM.setAttribute("data-row-index", rowIndex);
+    const rowDOM = this.createStyledElement<HTMLDivElement>('div', this.classNames.rowItem);
+    rowDOM.setAttribute('data-row-index', rowIndex);
     this.setStyle(rowDOM, {
-      height: this.rowHeight + "px",
+      height: this.rowHeight + 'px',
     });
 
     for (let i = 0, cols = this.columns; i < cols; i++) {
       data.push(false);
-      const blockDOM = this.createStyledElement<HTMLDivElement>(
-        "div",
-        this.classNames.blockItem
-      );
+      const blockDOM = this.createStyledElement<HTMLDivElement>('div', this.classNames.blockItem);
       this.setStyle(blockDOM, {
-        height: "100%",
-        width: this.columnWidth + "px",
+        height: '100%',
+        width: this.columnWidth + 'px',
       });
       rowDOM.append(blockDOM);
       doms.push(blockDOM);
@@ -228,22 +213,38 @@ export default class GameMap {
   }
 
   /**
+   * 设置行内的 block 的状态
+   */
+  public setBlockStatusInRow(row: RowItem, index: number, status: boolean) {
+    const { data, doms } = row;
+    data[index] = status;
+    if (status) {
+      doms[index].classList.add(this.classNames.blackBlock);
+    } else {
+      doms[index].classList.remove(this.classNames.blackBlock);
+    }
+  }
+
+  /**
+   * 重置一行中所有block的状态
+   */
+  public resetRow(row: RowItem) {
+    row.isTap = false;
+    for (let i = 0; i < row.data.length; i++) {
+      this.setBlockStatusInRow(row, i, false);
+    }
+    return row;
+  }
+
+  /**
    * 洗牌:打乱一行的数据(重新设置黑块位置)
    */
   public shuffle(row: RowItem): RowItem {
-    // 打乱数据: 因为每一行只有一个黑色块, 随机取一个将值修改
-    // 为 true, 并且将对应的dom的class修改为 block-black
-    // 先归原始状态再修改(打乱)
-    const blackBlockClass = this.classNames.blackBlock;
-    const { data, doms } = row;
-    for (let i = 0; i < data.length; i++) {
-      data[i] = false;
-      doms[i].classList.remove(blackBlockClass);
-    }
-    row.isTap = false;
-    const randomIndex = Math.floor(Math.random() * data.length);
-    data[randomIndex] = true;
-    doms[randomIndex].classList.add(blackBlockClass);
+    // 打乱数据: 因为每一行只有一个黑色块, 随机取
+    // 一个值修改状态, 先归原始状态再修改(打乱)
+    this.resetRow(row);
+    const randomIndex = Math.floor(Math.random() * row.data.length);
+    this.setBlockStatusInRow(row, randomIndex, true);
     return row;
   }
 
@@ -252,12 +253,12 @@ export default class GameMap {
    */
   public initStyles() {
     const { rowHeight, showRows, columnWidth, columns } = this;
-    this.setStyle(this.mapDOM, {
-      width: columnWidth * columns + "px",
-      height: rowHeight * showRows + "px",
+    this.setStyle(<HTMLElement>this.mapDOM, {
+      width: columnWidth * columns + 'px',
+      height: rowHeight * showRows + 'px',
     });
-    this.setStyle(this.scrollerDOM, {
-      width: "100%",
+    this.setStyle(<HTMLDivElement>this.scrollerDOM, {
+      width: '100%',
     });
   }
 
@@ -274,17 +275,18 @@ export default class GameMap {
    * 监听事件
    */
   public initEvents(): void {
+    const gameMgr = this.gameMgr;
     const events = [
       {
         dom: this.startBtnDOM,
-        event: "click",
-        handler: GameMap.gameMgr.start,
+        event: 'click',
+        handler: gameMgr.start,
         capture: false,
       },
       {
         dom: this.mapDOM,
-        event: "click",
-        handler: GameMap.gameMgr.tap,
+        event: 'click',
+        handler: gameMgr.tap,
         capture: false,
       },
     ];
@@ -315,18 +317,20 @@ export default class GameMap {
     const scrollRowsHeight = rowHeight * (scrollRows + 1); // 已经滚动的高度
     if (scrollBottom >= scrollRowsHeight) {
       this.scrollRows++;
+      // move
       const lastRowDOM = scrollerDOM.lastChild as HTMLDivElement;
-      const rowIndex = Number(lastRowDOM.getAttribute("data-row-index"));
+      const rowIndex = Number(lastRowDOM.getAttribute('data-row-index'));
       const rowItem = this.blockRows[rowIndex];
+
       if (!rowItem.isTap) {
         // 检测游戏是否结束: 如果滚动过了一行
         // 但是没有点击, 证明游戏结束
-        GameMap.gameMgr.gameOver();
+        this.gameMgr.gameOver();
         return;
       }
       this.blockRows[rowIndex] = this.shuffle(rowItem);
       scrollerDOM.insertBefore(lastRowDOM, scrollerDOM.firstChild);
-      scrollerDOM.style.paddingBottom = scrollRowsHeight + "px";
+      scrollerDOM.style.paddingBottom = scrollRowsHeight + 'px';
     }
   }
 
